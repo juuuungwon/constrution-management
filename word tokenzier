@@ -1,0 +1,6 @@
+from nltk import word_tokenize
+
+sentence = "The Matrix is everywhere its all around us, here even in this room."
+words = word_tokenize(sentence)
+print(type(words), len(words))
+print(words)
