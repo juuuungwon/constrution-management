@@ -1,0 +1,106 @@
+### sentence tokenize
+from nltk import sent_tokenize
+import nltk
+nltk.download('plunkt')
+
+text_sample = 'The Matrix is everywhere its all around us, here even in this room.  You can see it out yout window or on yout television.  you feel it when you go to work, or go ro church or pay yout taxes.'
+sentences = sent_tokenize(text=text_sample)
+print(type(sentences), len(sentences))
+print(sentences)
+
+#출력값
+<class 'list'> 3
+['The Matrix is everywhere its all around us, here even in this room.', 'You can see it out yout window or on yout television.', 'you feel it when you go to work, or go ro church or pay yout taxes.']
+
+
+
+###  words tokenize
+from nltk import word_tokenize
+
+sentence = "The Matrix is everywhere its all around us, here even in this room."
+words = word_tokenize(sentence)
+print(type(words), len(words))
+print(words)
+
+#출력값
+['The', 'Matrix', 'is', 'everywhere', 'its', 'all', 'around', 'us', ',', 'here', 'even', 'in', 'this', 'room', '.']
+
+
+
+### sentence tokenize+words tokenize
+from nltk import word_tokenize, sent_tokenize 
+
+def tokenize_text(text):
+
+    sentences = sent_tokenize(text)
+    word_tokens = [word_tokenize(sentence) for sentence in sentences]
+
+    return word_tokens
+
+word_tokens = tokenize_text('The Matrix is everywhere its all around us, here even in this room.  You can see it out yout window or on yout television.  you feel it when you go to work, or go ro church or pay yout taxes.')
+print(type(word_tokens), len(word_tokens))
+print(word_tokens)
+
+#출력값
+<class 'list'> 3
+[['The', 'Matrix', 'is', 'everywhere', 'its', 'all', 'around', 'us', ',', 'here', 'even', 'in', 'this', 'room', '.'], ['You', 'can', 'see', 'it', 'out', 'yout', 'window', 'or', 'on', 'yout', 'television', '.'], ['you', 'feel', 'it', 'when', 'you', 'go', 'to', 'work', ',', 'or', 'go', 'ro', 'church', 'or', 'pay', 'yout', 'taxes', '.']]
+
+
+
+###stopwords 다운로드 및 추출
+import nltk 
+nltk.download('stopwords')
+print('영어 stopwords 개수:', len(nltk.corpus.stopwords.words('english')))
+print(nltk.corpus.stopwords.words('english')[:20])
+
+#출력값
+영어 stopwords 개수: 179
+['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll", "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his']
+
+
+
+### remove stopwords
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+  
+example_sent = """The Matrix is everywhere its all around us, here even in this room.  You can see it out yout window or on yout television.  you feel it when you go to work, or go ro church or pay yout taxes."""
+  
+stop_words = set(stopwords.words('english'))
+  
+word_tokens = word_tokenize(example_sent)
+  
+filtered_sentence = [w for w in word_tokens if not w.lower() in stop_words]
+  
+filtered_sentence = []
+  
+for w in word_tokens:
+    if w not in stop_words:
+        filtered_sentence.append(w)
+  
+print(word_tokens)
+print(filtered_sentence)
+
+#출력값
+['The', 'Matrix', 'is', 'everywhere', 'its', 'all', 'around', 'us', ',', 'here', 'even', 'in', 'this', 'room', '.', 'You', 'can', 'see', 'it', 'out', 'yout', 'window', 'or', 'on', 'yout', 'television', '.', 'you', 'feel', 'it', 'when', 'you', 'go', 'to', 'work', ',', 'or', 'go', 'ro', 'church', 'or', 'pay', 'yout', 'taxes', '.']
+['The', 'Matrix', 'everywhere', 'around', 'us', ',', 'even', 'room', '.', 'You', 'see', 'yout', 'window', 'yout', 'television', '.', 'feel', 'go', 'work', ',', 'go', 'ro', 'church', 'pay', 'yout', 'taxes', '.']
+
+
+
+### stemming(어근추출)
+from nltk.stem import LancasterStemmer
+stemmer = LancasterStemmer()
+
+print(stemmer.stem('working'), stemmer.stem('works'), stemmer.stem('worked'))
+print(stemmer.stem('amusing'), stemmer.stem('amuses'), stemmer.stem('amused'))
+print(stemmer.stem('happier'), stemmer.stem('happiest'))
+print(stemmer.stem('fancier'), stemmer.stem('fanciest'))
+
+#출력값
+work work work
+amus amus amus
+happy happiest
+fant fanciest
+
+
+
+### lemmation(표제어추출)
