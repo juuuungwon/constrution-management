@@ -1,0 +1,12 @@
+from nltk import word_tokenize, sent_tokenize 
+
+def tokenize_text(text):
+
+    sentences = sent_tokenize(text)
+    word_tokens = [word_tokenize(sentence) for sentence in sentences]
+
+    return word_tokens
+
+word_tokens = tokenize_text('The Matrix is everywhere its all around us, here even in this room.  You can see it out yout window or on yout television.  you feel it when you go to work, or go ro church or pay yout taxes.')
+print(type(word_tokens), len(word_tokens))
+print(word_tokens)
