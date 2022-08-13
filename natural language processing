@@ -47,7 +47,7 @@ print(word_tokens)
 
 
 
-###stopwords 다운로드 및 추출
+### stopwords 다운로드 및 추출
 import nltk 
 nltk.download('stopwords')
 print('영어 stopwords 개수:', len(nltk.corpus.stopwords.words('english')))
@@ -104,3 +104,17 @@ fant fanciest
 
 
 ### lemmation(표제어추출)
+from nltk.stem import WordNetLemmatizer
+import nltk
+nltk.download('wordnet') 
+nltk.download('omw-1.4')
+
+lemma = WordNetLemmatizer()
+print(lemma.lemmatize('amusing', 'v'), lemma.lemmatize('amuses', 'v'), lemma.lemmatize('amused', 'v'))
+print(lemma.lemmatize('happier', 'a'), lemma.lemmatize('happiest','a'))
+print(lemma.lemmatize('fancier', 'a'), lemma.lemmatize('fanciest', 'a'))
+
+# 출력값
+amuse amuse amuse
+happy happy
+fancy fancy
