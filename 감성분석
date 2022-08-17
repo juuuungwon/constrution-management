@@ -361,6 +361,8 @@ print("정밀도:", np.round(precision_score(y_target , vader_preds),4))
 print("재현율:", np.round(recall_score(y_target, vader_preds),4))
 
 #결과값
+[[ 6747  5753]
+ [ 1858 10642]]
 정확도: 0.6956
 정밀도: 0.6491
 재현율: 0.8514
