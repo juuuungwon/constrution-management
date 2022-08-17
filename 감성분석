@@ -332,4 +332,38 @@ print("재현율:", np.round(recall_score(y_target, preds), 4))
 정밀도: 0.6472
 재현율: 0.7091
 
+###Vader를 이용한 감성 분석 1개에 대하여
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+senti_analyzer = SentimentIntensityAnalyzer()
+senti_scores = senti_analyzer.polarity_scores(review_df['review'][0])
+print(senti_scores)
+
+#결과값
+{'neg': 0.13, 'neu': 0.743, 'pos': 0.127, 'compound': -0.7943}
+
+###Vader를 이용한 감성분석 수치분석
+def vader_polarity(review,threshold=0.1):
+    analyzer = SentimentIntensityAnalyzer()
+    scores = analyzer.polarity_scores(review)
+    
+    agg_score = scores['compound']
+    final_sentiment = 1 if agg_score >= threshold else 0
+    return final_sentiment
+
+review_df['vader_preds'] = review_df['review'].apply( lambda x : vader_polarity(x, 0.1) )
+y_target = review_df['sentiment'].values
+vader_preds = review_df['vader_preds'].values
+
+print(confusion_matrix( y_target, vader_preds))
+print("정확도:", np.round(accuracy_score(y_target , vader_preds),4))
+print("정밀도:", np.round(precision_score(y_target , vader_preds),4))
+print("재현율:", np.round(recall_score(y_target, vader_preds),4))
+
+#결과값
+정확도: 0.6956
+정밀도: 0.6491
+재현율: 0.8514
+
+
     
