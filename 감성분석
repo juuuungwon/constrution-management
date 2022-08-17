@@ -71,7 +71,7 @@ pred_probs = pipeline.predict_proba(X_test["review"])[:,1]
 print("예측 정확도는 {0:.4f}, ROC-AUC는 {1:.4f}".format(accuracy_score(y_test, pred), roc_auc_score(y_test, pred_probs)))
 
 #출력값
-
+예측 정확도는 0.8860, ROC-AUC는 0.9503
 
 ###TF_IDF기반 피처 벡터화 성능 분석
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
@@ -91,6 +91,8 @@ pred_probs = pipeline.predict_proba(X_test["review"])[:,1]
 print("예측 정확도는 {0:.4f}, ROC-AUC는 {1:.4f}".format(accuracy_score(y_test, pred), roc_auc_score(y_test, pred_probs)))
 
 #출력값
+예측 정확도는 0.8936, ROC-AUC는 0.9598
+
 
 
 ###비지도학습 감성분석
@@ -248,5 +250,95 @@ fabulous 객관 :  0.0
 
 
 ###영화 감상평의 분석
+#품사태깅
+from nltk.corpus import wordnet as wn
+
+
+def penn_to_wn(tag):
+    if tag.startswith('J'):
+        return wn.ADJ
+    elif tag.startswith('N'):
+        return wn.NOUN
+    elif tag.startswith('R'):
+        return wn.ADV
+    elif tag.startswith('V'):
+        return wn.VERB
+    return 
+    
+#감성 분석 함수 생성
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import sentiwordnet as swn
+from nltk import sent_tokenize, word_tokenize, pos_tag
+
+def swn_polarity(text):
+
+    sentiment = 0.0
+    tokens_count = 0
+    
+    lemmatizer = WordNetLemmatizer()
+    raw_sentences = sent_tokenize(text)
+
+    for raw_sentence in raw_sentences:
+         
+        tagged_sentence = pos_tag(word_tokenize(raw_sentence))
+        for word , tag in tagged_sentence:
+            
+            
+            wn_tag = penn_to_wn(tag)
+            if wn_tag not in (wn.NOUN , wn.ADJ, wn.ADV):
+                continue                   
+            lemma = lemmatizer.lemmatize(word, pos=wn_tag)
+            if not lemma:
+                continue
+             
+            synsets = wn.synsets(lemma , pos=wn_tag)
+            if not synsets:
+                continue
+         
+            synset = synsets[0]
+            swn_synset = swn.senti_synset(synset.name())
+            sentiment += (swn_synset.pos_score() - swn_synset.neg_score())           
+            tokens_count += 1
+    
+    if not tokens_count:
+        return 0
+    
+  
+    if sentiment >= 0 :
+        return 1
+    
+    return 0
+  
+#함수 적용
+review_df['preds'] = review_df['review'].apply( lambda x : swn_polarity(x) )
+y_target = review_df['sentiment'].values
+preds = review_df['preds'].values
+
+#수치 분석
+def vader_polarity(review,threshold=0.1):
+    analyzer = SentimentIntensityAnalyzer()
+    scores = analyzer.polarity_scores(review)
+    
+    # compound 값에 기반하여 threshold 입력값보다 크면 1, 그렇지 않으면 0을 반환 
+    agg_score = scores['compound']
+    final_sentiment = 1 if agg_score >= threshold else 0
+    return final_sentiment
+
+# apply lambda 식을 이용하여 레코드별로 vader_polarity( )를 수행하고 결과를 'vader_preds'에 저장
+review_df['vader_preds'] = review_df['review'].apply( lambda x : vader_polarity(x, 0.1) )
+y_target = review_df['sentiment'].values
+vader_preds = review_df['vader_preds'].values
+
+print(confusion_matrix( y_target, vader_preds))
+print("정확도:", np.round(accuracy_score(y_target , vader_preds),4))
+print("정밀도:", np.round(precision_score(y_target , vader_preds),4))
+print("재현율:", np.round(recall_score(y_target, vader_preds),4))
+
+#최종 결과
+[[7668 4832]
+ [3636 8864]]
+정확도: 0.6613
+정밀도: 0.6472
+재현율: 0.7091
 
     
