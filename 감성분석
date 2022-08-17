@@ -1,1 +1,252 @@
-https://seominseok4834.github.io/machine%20learning/8.text-analytics/
+###지도기반 감성분석
+
+###CSV파일 불러오기 및 파일 확인
+import pandas as pd
+
+review_df = pd.read_csv('C:\\Users\\civil002\\labeledTrainData.tsv', header=0, sep="\t", quoting=3)
+review_df.head(3)
+
+#출력값
+id	sentiment	review
+0	"5814_8"	1	"With all this stuff going down at the moment ...
+1	"2381_9"	1	"\"The Classic War of the Worlds\" by Timothy ...
+2	"7759_3"	0	"The film starts with a manager (Nicholas Bell...
+
+
+###내용 및 구성 확인하기
+print(review_df['review'],[0])
+
+#출력값
+0        "With all this stuff going down at the moment ...
+1        "\"The Classic War of the Worlds\" by Timothy ...
+2        "The film starts with a manager (Nicholas Bell...
+3        "It must be assumed that those who praised thi...
+4        "Superbly trashy and wondrously unpretentious ...
+                               ...                        
+24995    "It seems like more consideration has gone int...
+24996    "I don't believe they made this film. Complete...
+24997    "Guy is a loser. Can't get girls, needs to bui...
+24998    "This 30 minute documentary Buñuel made in the...
+24999    "I saw this movie as a child and it broke my h...
+Name: review, Length: 25000, dtype: object [0]
+
+
+
+### 숫자/특수문자 제거, 의미없는 단어제거, 데이터 분리
+import re
+
+review_df['review'] = review_df['review'].str.replace('<vr \>','')
+
+review_df['review'] = review_df['review'].apply( lambda x : re.sub("[a-zA-Z]", "",x))
+
+from sklearn.model_selection import train_test_split
+
+class_df = review_df['sentiment']
+feature_df = review_df.drop(['id', 'sentiment'], axis=1, inplace=False)
+X_train, X_test, y_train, y_test=train_test_split(feature_df, class_df, test_size=0.3, random_state=156)
+
+X_train.shape, X_test.shape
+
+#출력값
+((17500, 1), (7500, 1))
+
+
+
+###Count 벡터화 진행하여 예측 성능 분석
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, roc_auc_score
+
+
+pipeline = Pipeline([
+    ("cnt_vect", CountVectorizer(stop_words="english", ngram_range=(1,2))),
+    ("lr_clf", LogisticRegression(C = 10))])
+
+
+pipeline.fit(X_train["review"], y_train)
+pred = pipeline.predict(X_test["review"])
+pred_probs = pipeline.predict_proba(X_test["review"])[:,1]
+
+print("예측 정확도는 {0:.4f}, ROC-AUC는 {1:.4f}".format(accuracy_score(y_test, pred), roc_auc_score(y_test, pred_probs)))
+
+#출력값
+
+
+###TF_IDF기반 피처 벡터화 성능 분석
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, roc_auc_score
+
+
+pipeline = Pipeline([
+    ("cnt_vect", TfidfVectorizer(stop_words="english", ngram_range=(1,2))),
+    ("lr_clf", LogisticRegression(C = 10))])
+
+pipeline.fit(X_train["review"], y_train)
+pred = pipeline.predict(X_test["review"])
+pred_probs = pipeline.predict_proba(X_test["review"])[:,1]
+
+print("예측 정확도는 {0:.4f}, ROC-AUC는 {1:.4f}".format(accuracy_score(y_test, pred), roc_auc_score(y_test, pred_probs)))
+
+#출력값
+
+
+###비지도학습 감성분석
+###단어 분석
+from nltk.corpus import wordnet as wn
+term = 'present'
+
+synsets = wn.synsets(term)
+print('synsets() 반환 type :',type(synsets))
+print('synsets() 반환 값 개수:', len(synsets))
+print('synsets() 반환 값:', synsets)
+
+#출력값
+synsets() 반환 type : <class 'list'>
+synsets() 반환 값 개수: 18
+synsets() 반환 값: [Synset('present.n.01'), Synset('present.n.02'), Synset('present.n.03'), Synset('show.v.01'), Synset('present.v.02'), Synset('stage.v.01'), Synset('present.v.04'), Synset('present.v.05'), Synset('award.v.01'), Synset('give.v.08'), Synset('deliver.v.01'), Synset('introduce.v.01'), Synset('portray.v.04'), Synset('confront.v.03'), Synset('present.v.12'), Synset('salute.v.06'), Synset('present.a.01'), Synset('present.a.02')]
+
+
+###하나의 단어가 가지는 여러 시멘틱 정보
+for synset in synsets :
+    print('##### synset name :', synset.name(), '#####')
+    print('POS :', synset.lexname())
+    print('Definition:', synset.definition())
+    print('Lemmas:', synset.lemma_names())
+    
+    
+#출력값
+##### synset name : present.n.01 #####
+POS : noun.time
+Definition: the period of time that is happening now; any continuous stretch of time including the moment of speech
+Lemmas: ['present', 'nowadays']
+##### synset name : present.n.02 #####
+POS : noun.possession
+Definition: something presented as a gift
+Lemmas: ['present']
+##### synset name : present.n.03 #####
+POS : noun.communication
+Definition: a verb tense that expresses actions or states at the time of speaking
+Lemmas: ['present', 'present_tense']
+##### synset name : show.v.01 #####
+POS : verb.perception
+Definition: give an exhibition of to an interested audience
+Lemmas: ['show', 'demo', 'exhibit', 'present', 'demonstrate']
+##### synset name : present.v.02 #####
+POS : verb.communication
+Definition: bring forward and present to the mind
+Lemmas: ['present', 'represent', 'lay_out']
+##### synset name : stage.v.01 #####
+POS : verb.creation
+Definition: perform (a play), especially on a stage
+Lemmas: ['stage', 'present', 'represent']
+##### synset name : present.v.04 #####
+POS : verb.possession
+Definition: hand over formally
+Lemmas: ['present', 'submit']
+##### synset name : present.v.05 #####
+POS : verb.stative
+Definition: introduce
+Lemmas: ['present', 'pose']
+##### synset name : award.v.01 #####
+POS : verb.possession
+Definition: give, especially as an honor or reward
+Lemmas: ['award', 'present']
+##### synset name : give.v.08 #####
+POS : verb.possession
+Definition: give as a present; make a gift of
+Lemmas: ['give', 'gift', 'present']
+##### synset name : deliver.v.01 #####
+POS : verb.communication
+Definition: deliver (a speech, oration, or idea)
+Lemmas: ['deliver', 'present']
+##### synset name : introduce.v.01 #####
+POS : verb.communication
+Definition: cause to come to know personally
+Lemmas: ['introduce', 'present', 'acquaint']
+##### synset name : portray.v.04 #####
+POS : verb.creation
+Definition: represent abstractly, for example in a painting, drawing, or sculpture
+Lemmas: ['portray', 'present']
+##### synset name : confront.v.03 #####
+POS : verb.communication
+Definition: present somebody with something, usually to accuse or criticize
+Lemmas: ['confront', 'face', 'present']
+##### synset name : present.v.12 #####
+POS : verb.communication
+Definition: formally present a debutante, a representative of a country, etc.
+Lemmas: ['present']
+##### synset name : salute.v.06 #####
+POS : verb.communication
+Definition: recognize with a gesture prescribed by a military regulation; assume a prescribed position
+Lemmas: ['salute', 'present']
+##### synset name : present.a.01 #####
+POS : adj.all
+Definition: temporal sense; intermediate between past and future; now existing or happening or in consideration
+Lemmas: ['present']
+##### synset name : present.a.02 #####
+POS : adj.all
+Definition: being or existing in a specified place
+Lemmas: ['present']
+
+###단어간 유사도 측정
+tree = wn.synset('tree.n.01')
+lion = wn.synset('lion.n.01')
+tiger = wn.synset('tiger.n.02')
+cat = wn.synset('cat.n.01')
+dog = wn.synset('dog.n.01')
+
+entities = [tree, lion, tiger, cat, dog]
+
+similarities = []
+
+entity_names = [entity.name().split('.')[0] for entity in entities]
+
+for entity in entities:
+    similarity = [round(entity.path_similarity(compared_entity) ,2) for compared_entity in entities]
+    
+    similarities.append(similarity)
+    
+    
+similarity_df = pd.DataFrame(similarities, columns=entity_names, index = entity_names)
+similarity_df
+
+
+#결과값
+	tree	lion	tiger	cat	dog
+tree	1.00	0.07	0.07	0.08	0.12
+lion	0.07	1.00	0.33	0.25	0.17
+tiger	0.07	0.33	1.00	0.25	0.17
+cat	0.08	0.25	0.25	1.00	0.20
+dog	0.12	0.17	0.17	0.20	1.00
+
+###단어의 감성지수와 객관지수
+import nltk
+from nltk.corpus import sentiwordnet as swn
+
+father = swn.senti_synset('father.n.01')
+print('father 긍정감성지수 : ', father.pos_score())
+print('father 부정감성지수 : ', father.neg_score())
+print('father 객관성 지수 : ', father.obj_score())
+
+print('\n')
+fabulous = swn.senti_synset('fabulous.a.01')
+print('fabulous 긍정감성지수 : ', fabulous.pos_score())
+print('fabulous 부정감성지수 : ', fabulous.neg_score())
+print('fabulous 객관 : ', fabulous.obj_score())
+
+father 긍정감성지수 :  0.0
+father 부정감성지수 :  0.0
+father 객관성 지수 :  1.0
+
+
+fabulous 긍정감성지수 :  0.875
+fabulous 부정감성지수 :  0.125
+fabulous 객관 :  0.0
+
+
+###영화 감상평의 분석
+
+    
